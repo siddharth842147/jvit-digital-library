@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Container, Row, Col, Card, Badge, Button, Spinner, Modal, Form } from 'react-bootstrap';
-import { FiArrowLeft, FiBook, FiUser, FiCalendar, FiHash, FiMapPin, FiLayers, FiCheckCircle, FiClock } from 'react-icons/fi';
+import { FiArrowLeft, FiBook, FiCalendar, FiHash, FiMapPin, FiLayers, FiCheckCircle, FiClock } from 'react-icons/fi';
 import { getBook } from '../services/bookService';
 import { borrowBook } from '../services/borrowService';
 import { useAuth } from '../context/AuthContext';

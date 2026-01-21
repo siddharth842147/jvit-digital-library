@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Form, Modal, Spinner, InputGroup } from 'react-bootstrap';
-import { FiUsers, FiSearch, FiEdit2, FiTrash2, FiShield, FiUserPlus, FiUser, FiMapPin, FiPhone, FiLock, FiPlus } from 'react-icons/fi';
+import { FiUsers, FiSearch, FiEdit2, FiTrash2, FiMapPin, FiPhone, FiLock, FiPlus } from 'react-icons/fi';
 import { getAllUsers, updateUser, deleteUser, createUser } from '../../services/adminService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -26,7 +26,7 @@ const ManageUsers = () => {
         address: ''
     });
 
-    const fetchUsers = async () => {
+    const fetchUsers = useCallback(async () => {
         try {
             setLoading(true);
             const response = await getAllUsers({ search: searchTerm });
@@ -36,11 +36,11 @@ const ManageUsers = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchTerm]);
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [fetchUsers]);
 
     const handleSearch = (e) => {
         e.preventDefault();

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Button, Spinner, Badge, Alert, Tabs, Tab, Form } from 'react-bootstrap';
-import { FiDollarSign, FiCreditCard, FiAlertCircle, FiCheckCircle, FiInfo, FiSmartphone, FiHome, FiCopy, FiExternalLink } from 'react-icons/fi';
+import { Container, Row, Col, Card, Button, Spinner, Badge, Tabs, Tab, Form } from 'react-bootstrap';
+import { FiDollarSign, FiCreditCard, FiInfo, FiSmartphone, FiHome, FiCopy } from 'react-icons/fi';
 import { createPaymentOrder, verifyPayment, loadRazorpayScript, getAdminPaymentDetails, submitManualPayment } from '../services/paymentService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';

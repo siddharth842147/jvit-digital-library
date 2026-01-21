@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Container, Row, Col, Card, Button, Table, Badge, Form, Modal, Spinner, InputGroup } from 'react-bootstrap';
-import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiFilter, FiBook, FiImage, FiHash, FiActivity } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiSearch, FiBook, FiImage } from 'react-icons/fi';
 import { getBooks, addBook, updateBook, deleteBook, getCategories } from '../../services/bookService';
 import { toast } from 'react-toastify';
 
@@ -27,7 +27,7 @@ const ManageBooks = () => {
         shelfLocation: ''
     });
 
-    const fetchBooks = async () => {
+    const fetchBooks = useCallback(async () => {
         try {
             setLoading(true);
             const response = await getBooks({ search: searchTerm, limit: 100 });
@@ -37,12 +37,12 @@ const ManageBooks = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [searchTerm]);
 
     useEffect(() => {
         fetchBooks();
         loadCategories();
-    }, []);
+    }, [fetchBooks]);
 
     const loadCategories = async () => {
         try {

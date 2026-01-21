@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Card, Badge, Button, Spinner, Table } from 'react-bootstrap';
+import { Container, Row, Col, Card, Badge, Button, Spinner } from 'react-bootstrap';
 import { FiBook, FiCalendar, FiRotateCcw, FiAlertCircle, FiInfo } from 'react-icons/fi';
 import { getMyBorrowedBooks, returnBook } from '../services/borrowService';
 import { toast } from 'react-toastify';
