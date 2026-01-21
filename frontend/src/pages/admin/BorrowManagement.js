@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Table, Badge, Button, Row, Col, Spinner, InputGroup, Form } from 'react-bootstrap';
-import { FiClock, FiCheckCircle, FiAlertCircle, FiSearch, FiFileText, FiUserCheck, FiRotateCcw, FiXCircle } from 'react-icons/fi';
+import { Container, Card, Table, Badge, Button, Spinner, InputGroup, Form } from 'react-bootstrap';
+import { FiSearch, FiFileText, FiUserCheck, FiRotateCcw } from 'react-icons/fi';
 import { getBorrowHistory, approveBorrow, verifyReturn } from '../../services/borrowService';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -128,8 +128,6 @@ const BorrowManagement = () => {
                                     </thead>
                                     <tbody>
                                         {filteredBorrows.map((b) => {
-                                            const isOverdue = b.status === 'overdue' || (b.status === 'borrowed' && new Date(b.dueDate) < new Date());
-
                                             return (
                                                 <tr key={b._id}>
                                                     <td className="px-4 py-3">

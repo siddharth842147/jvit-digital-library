@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Table, Badge, Button, Spinner } from 'react-bootstrap';
-import { FiDollarSign, FiDownload, FiExternalLink, FiSearch, FiFileText, FiMail, FiSend } from 'react-icons/fi';
+import { FiDollarSign, FiDownload, FiFileText, FiMail } from 'react-icons/fi';
 import { getPaymentHistory, sendReceiptEmail, downloadReceipt } from '../services/paymentService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
