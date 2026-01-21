@@ -18,14 +18,14 @@ const Navbar = () => {
     return (
         <BSNavbar expand="lg" className="navbar" sticky="top">
             <Container>
-                <BSNavbar.Brand as={Link} to="/" className="d-flex align-items-center gap-3">
+                <BSNavbar.Brand as={Link} to="/" className="d-flex align-items-center gap-2 gap-md-3">
                     <div className="logo-container" style={{
-                        width: '54px',
-                        height: '54px',
+                        width: '40px',
+                        height: '40px',
                         borderRadius: '50%',
                         overflow: 'hidden',
                         background: 'white',
-                        padding: '4px',
+                        padding: '3px',
                         boxShadow: 'var(--shadow-sm)',
                         border: '2px solid var(--primary-light)'
                     }}>
@@ -37,12 +37,14 @@ const Navbar = () => {
                         />
                     </div>
                     <div className="d-flex flex-column justify-content-center">
-                        <span style={{ fontWeight: 800, fontSize: '1.4rem', lineHeight: 1, color: 'var(--primary)', letterSpacing: '-0.5px' }}>JVIT</span>
-                        <span style={{ fontSize: '0.65rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>Knowledge Hub</span>
+                        <span style={{ fontWeight: 800, fontSize: '1.2rem', lineHeight: 1, color: 'var(--primary)', letterSpacing: '-0.5px' }}>JVIT</span>
+                        <span className="d-none d-sm-block" style={{ fontSize: '0.6rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-secondary)' }}>Knowledge Hub</span>
                     </div>
                 </BSNavbar.Brand>
 
-                <BSNavbar.Toggle aria-controls="basic-navbar-nav" />
+                <BSNavbar.Toggle aria-controls="basic-navbar-nav" className="border-0 shadow-none">
+                    <span className="navbar-toggler-icon" style={{ width: '1.2em', height: '1.2em' }}></span>
+                </BSNavbar.Toggle>
 
                 <BSNavbar.Collapse id="basic-navbar-nav">
                     <Nav className="ms-auto align-items-center gap-3">
