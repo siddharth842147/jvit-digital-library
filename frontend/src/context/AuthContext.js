@@ -71,18 +71,38 @@ export const AuthProvider = ({ children }) => {
     const register = async (userData) => {
         try {
             const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/register`, userData);
-
+            // If OTP flow, backend returns userId and no token
+            if (res.data.userId) {
+                toast.info('OTP sent to your phone/email. Please verify.');
+                return { success: true, userId: res.data.userId };
+            }
             const { token, user } = res.data;
-
             localStorage.setItem('token', token);
             setToken(token);
             setUser(user);
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
             toast.success('Registration successful!');
             return { success: true, user };
         } catch (error) {
             const message = error.response?.data?.message || 'Registration failed';
+            toast.error(message);
+            return { success: false, message };
+        }
+    };
+
+    // Verify OTP for registration
+    const verifyOtp = async (userId, otp) => {
+        try {
+            const res = await axios.post(`${process.env.REACT_APP_API_URL}/auth/verify-otp`, { userId, otp });
+            const { token, user } = res.data;
+            localStorage.setItem('token', token);
+            setToken(token);
+            setUser(user);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            toast.success('OTP verified! Registration complete.');
+            return { success: true, user };
+        } catch (error) {
+            const message = error.response?.data?.message || 'OTP verification failed';
             toast.error(message);
             return { success: false, message };
         }
@@ -146,6 +166,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         login,
         register,
+        verifyOtp,
         logout,
         updateProfile,
         updatePassword,

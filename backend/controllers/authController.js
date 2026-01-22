@@ -1,3 +1,35 @@
+// @desc    Verify OTP for registration
+// @route   POST /api/auth/verify-otp
+// @access  Public
+exports.verifyOtp = async (req, res) => {
+    try {
+        const { userId, otp } = req.body;
+        if (!userId || !otp) {
+            return res.status(400).json({ success: false, message: 'User ID and OTP are required' });
+        }
+        const user = await User.findById(userId).select('+otp +otpExpire');
+        if (!user) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+        if (!user.otp || !user.otpExpire) {
+            return res.status(400).json({ success: false, message: 'OTP not set for this user' });
+        }
+        if (user.otp !== otp) {
+            return res.status(400).json({ success: false, message: 'Invalid OTP' });
+        }
+        if (user.otpExpire < Date.now()) {
+            return res.status(400).json({ success: false, message: 'OTP expired' });
+        }
+        // OTP is valid, clear OTP fields and activate user
+        user.otp = undefined;
+        user.otpExpire = undefined;
+        await user.save();
+        // Send token response (login user)
+        sendTokenResponse(user, 200, res, 'OTP verified, registration complete');
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};
 const User = require('../models/User');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
@@ -8,7 +40,7 @@ const sendEmail = require('../utils/sendEmail');
 exports.register = async (req, res) => {
     try {
         const { name, email, password, phone, address, role } = req.body;
-
+        const sendSMS = require('../utils/sendSMS');
         // Check if user already exists
         const userExists = await User.findOne({ email });
         if (userExists) {
@@ -18,28 +50,44 @@ exports.register = async (req, res) => {
             });
         }
 
-        // Create user
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+        // Create user with OTP (not verified yet)
         const user = await User.create({
             name,
             email,
             password,
             phone,
             address,
-            role: role || 'student' // Default to student if not specified
+            role: role || 'student',
+            otp,
+            otpExpire
         });
 
-        // Send welcome email
-        try {
-            await sendEmail({
-                email: user.email,
-                subject: 'Welcome to Library Management System',
-                message: `Hello ${user.name},\n\nWelcome to our Library Management System! Your account has been created successfully.\n\nYou can now login and start browsing books.\n\nBest regards,\nLibrary Team`
+        // Send OTP via SMS (simulate)
+        if (phone) {
+            await sendSMS({
+                phone,
+                message: `Your OTP for registration is: ${otp}`
             });
-        } catch (emailError) {
-            console.error('Email sending failed:', emailError);
         }
 
-        sendTokenResponse(user, 201, res, 'User registered successfully');
+        // Optionally, send OTP via email as well
+        sendEmail({
+            email: user.email,
+            subject: 'Your OTP for Library Registration',
+            message: `Hello ${user.name},\n\nYour OTP for registration is: ${otp}. It is valid for 10 minutes.\n\nBest regards,\nLibrary Team`
+        }).catch(emailError => {
+            console.error('Email sending failed in background:', emailError);
+        });
+
+        res.status(201).json({
+            success: true,
+            message: 'OTP sent to your phone/email. Please verify to complete registration.',
+            userId: user._id
+        });
     } catch (error) {
         res.status(500).json({
             success: false,

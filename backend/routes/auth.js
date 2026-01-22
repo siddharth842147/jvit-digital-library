@@ -6,7 +6,8 @@ const {
     forgotPassword,
     resetPassword,
     updateDetails,
-    updatePassword
+    updatePassword,
+    verifyOtp
 } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const { body } = require('express-validator');
@@ -34,6 +35,7 @@ const loginValidation = [
 
 // Public routes
 router.post('/register', registerValidation, validate, register);
+router.post('/verify-otp', verifyOtp);
 router.post('/login', loginValidation, validate, login);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:resettoken', resetPassword);
