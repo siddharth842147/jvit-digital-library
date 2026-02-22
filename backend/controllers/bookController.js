@@ -96,7 +96,7 @@ exports.addBook = async (req, res) => {
 
         // Handle file upload
         if (req.file) {
-            req.body.coverImage = `/public/uploads/books/${req.file.filename}`;
+            req.body.coverImage = `/uploads/books/${req.file.filename}`;
         }
 
         const book = await Book.create(req.body);
@@ -138,7 +138,7 @@ exports.updateBook = async (req, res) => {
 
         // Handle file upload
         if (req.file) {
-            req.body.coverImage = `/public/uploads/books/${req.file.filename}`;
+            req.body.coverImage = `/uploads/books/${req.file.filename}`;
         }
 
         book = await Book.findByIdAndUpdate(req.params.id, req.body, {

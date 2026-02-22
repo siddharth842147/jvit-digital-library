@@ -28,7 +28,14 @@ Thumbs.db
 
 # Backend specific
 receipts/*.pdf
-uploads/
+public/uploads/*
+!public/uploads/sample.pdf
+!public/uploads/resources/
+public/uploads/resources/*
+!public/uploads/resources/.gitkeep
+!public/uploads/books/
+public/uploads/books/*
+!public/uploads/books/.gitkeep
 logs/
 
 # Frontend specific
