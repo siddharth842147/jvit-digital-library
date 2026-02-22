@@ -1,0 +1,16 @@
+{
+    "name": "jvit-digital-library",
+    "version": "1.0.0",
+    "description": "Library Management System with Digital ID",
+    "scripts": {
+        "install:all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+        "dev:backend": "cd backend && npm run dev",
+        "dev:frontend": "cd frontend && npm start",
+        "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+        "start": "npm run dev",
+        "seed": "cd backend && npm run seed"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

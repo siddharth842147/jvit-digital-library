@@ -1,0 +1,9 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /profile/
+Allow: /
+Allow: /books/
+Allow: /policy/
+
+Sitemap: http://localhost:3000/sitemap.xml
