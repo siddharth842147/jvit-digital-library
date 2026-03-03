@@ -72,28 +72,47 @@ exports.register = async (req, res) => {
         });
 
         // Send welcome email in background
+        console.log(`Sending welcome email to: ${user.email}`);
         sendEmail({
             email: user.email,
             subject: 'Welcome to JVIT Digital Library! 📚',
             message: `Hello ${user.name},\n\nWelcome to the JVIT Digital Library Management System!\n\nYour account has been created successfully. You can now browse our collection, request books, and manage your library profile.\n\nLibrary Rules Recap:\n- Max books at a time: 3\n- Default borrow duration: 14 days\n- Fine per day: ₹10 (Sundays, 1st/3rd Saturdays & holidays are exempt)\n\nHappy Reading!\nBest regards,\nLibrary Administration Team`
+        }).then(() => {
+            console.log(`✅ Welcome email sent to ${user.email}`);
         }).catch(emailError => {
-            console.error('Email sending failed in background:', emailError);
+            console.error('❌ Email sending failed in background:', emailError.message);
         });
 
         // Notify Staff about new registration
         try {
             const staffMembers = await User.find({ role: { $in: ['admin', 'librarian'] } });
-            const staffEmails = staffMembers.map(s => s.email);
+
+            // Filter out placeholder emails that cause delivery failures (e.g., @library.com)
+            let staffEmails = staffMembers
+                .map(s => s.email)
+                .filter(email => email && !email.endsWith('@library.com'));
+
+            // If a specific notification email is set in env, add it
+            if (process.env.NOTIFICATION_EMAIL) {
+                staffEmails.push(process.env.NOTIFICATION_EMAIL);
+            }
+
+            // Remove duplicates
+            staffEmails = [...new Set(staffEmails)];
 
             if (staffEmails.length > 0) {
+                console.log(`Notifying staff: ${staffEmails.join(', ')}`);
                 await sendEmail({
                     email: staffEmails.join(','),
                     subject: 'New Student Registered 👤',
                     message: `Hello Staff,\n\nA new student has registered on the platform.\n\nDetails:\nName: ${user.name}\nEmail: ${user.email}\nPhone: ${user.phone || 'N/A'}\nUSN: ${user.usn || 'N/A'}\n\nPlease review the account if necessary.\n\nBest regards,\nSystem Notification`
                 });
+                console.log('✅ Staff notification sent');
+            } else {
+                console.log('No valid staff emails found for notification');
             }
         } catch (staffEmailError) {
-            console.error('Staff notification failed:', staffEmailError);
+            console.error('❌ Staff notification failed:', staffEmailError.message);
         }
 
         // Immediately return token and user (no OTP required)

@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGODB_URI, {
 const users = [
     {
         name: 'Admin User',
-        email: 'admin@library.com',
+        email: 'change-me-admin@example.com',
         password: 'admin123',
         role: 'admin',
         phone: '9876543210',
@@ -23,7 +23,7 @@ const users = [
     },
     {
         name: 'John Librarian',
-        email: 'librarian@library.com',
+        email: 'change-me-librarian@example.com',
         password: 'librarian123',
         role: 'librarian',
         phone: '9876543211',

@@ -20,12 +20,22 @@ exports.borrowBook = async (req, res) => {
             });
         }
 
-        // Check if book is available
-        if (book.availableCopies <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Book is not available for borrowing'
-            });
+        // Check for pending borrow requests for this book
+        const pendingApprovals = await Borrow.countDocuments({
+            book: bookId,
+            status: 'pending'
+        });
+
+        // Warn if pending requests already exceed or equal available copies
+        if (book.availableCopies <= 0 || pendingApprovals >= book.availableCopies) {
+            const message = book.availableCopies <= 0
+                ? 'Book is not available for borrowing.'
+                : `All ${book.availableCopies} available copies are already requested by other students and waiting for approval. Your request may be rejected if they are approved first.`;
+
+            if (book.availableCopies <= 0) {
+                return res.status(400).json({ success: false, message });
+            }
+            // Allow submission but warn (or we could block here too, but warning is better for "race for approval")
         }
 
         // Check for active reservations (Waitlist hold)
@@ -146,6 +156,15 @@ exports.approveBorrow = async (req, res) => {
 
             // Update book counts now
             const book = await Book.findById(borrow.book);
+
+            // Critical check: ensure copy is still available at moment of approval
+            if (book.availableCopies <= 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'No copies available to fulfill this request. It should be rejected or wait until a book is returned.'
+                });
+            }
+
             book.availableCopies -= 1;
             await book.save();
 
