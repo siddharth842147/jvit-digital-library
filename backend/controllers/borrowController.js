@@ -120,6 +120,20 @@ exports.borrowBook = async (req, res) => {
             console.error('Staff borrow request notification failed:', e);
         }
 
+        // Notify Student
+        try {
+            const student = await User.findById(userId);
+            if (student && student.email) {
+                sendEmail({
+                    email: student.email,
+                    subject: 'Borrow Request Submitted 📚',
+                    message: `Hello ${student.name},\n\nYour request to borrow "${borrow.book.title}" has been submitted successfully!\n\nPlease wait for the admin or librarian to approve your request in the system.\n\nBest regards,\nLibrary System`
+                }).catch(err => console.error('Student borrow email error:', err.message));
+            }
+        } catch (e) {
+            console.error('Student borrow notification failed:', e);
+        }
+
         res.status(201).json({
             success: true,
             message: 'Borrow request submitted. Waiting for Admin & Librarian approval.',
@@ -218,7 +232,7 @@ exports.approveBorrow = async (req, res) => {
 // @access  Private
 exports.returnBook = async (req, res) => {
     try {
-        const borrow = await Borrow.findById(req.params.id);
+        const borrow = await Borrow.findById(req.params.id).populate('book').populate('user');
         if (!borrow) return res.status(404).json({ success: false, message: 'Record not found' });
 
         if (borrow.status === 'returned' || borrow.status === 'return_pending') {
@@ -228,6 +242,19 @@ exports.returnBook = async (req, res) => {
         borrow.status = 'return_pending';
         borrow.returnDate = new Date();
         await borrow.save();
+
+        // Notify Student
+        try {
+            if (borrow.user && borrow.user.email) {
+                sendEmail({
+                    email: borrow.user.email,
+                    subject: 'Return Request Initiated 🔄',
+                    message: `Hello ${borrow.user.name},\n\nYou have initiated the return for "${borrow.book.title}".\n\nPlease hand over the physical book to the library staff for final verification.\n\nBest regards,\nLibrary System`
+                }).catch(err => console.error('Student return email error:', err.message));
+            }
+        } catch (e) {
+            console.error('Student return notification failed:', e);
+        }
 
         res.status(200).json({
             success: true,

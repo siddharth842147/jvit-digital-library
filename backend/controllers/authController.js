@@ -168,6 +168,18 @@ exports.login = async (req, res) => {
             });
         }
 
+        // Send login alert email
+        try {
+            const sendEmail = require('../utils/sendEmail');
+            sendEmail({
+                email: user.email,
+                subject: 'New Login Alert 🔔',
+                message: `Hello ${user.name},\n\nA new login was just detected on your JVIT Library account.\nIf this was you, you can safely ignore this email.\n\nBest regards,\nLibrary Management Team`
+            }).catch(e => console.error('Login email error:', e.message));
+        } catch (err) {
+            console.error('Failed to initiate login email:', err.message);
+        }
+
         sendTokenResponse(user, 200, res, 'Login successful');
     } catch (error) {
         res.status(500).json({
