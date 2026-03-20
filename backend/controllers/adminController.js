@@ -311,18 +311,33 @@ exports.deleteUser = async (req, res) => {
             return res.status(400).json({ success: false, message: 'You cannot delete yourself' });
         }
 
-        // Check if user has active borrows
-        const activeBorrows = await Borrow.countDocuments({
+        // 1. Handle Active Borrows (Restore book inventory)
+        // Only 'borrowed', 'overdue', and 'return_pending' mean the book was actually issued.
+        // 'pending' means the request was just sitting there, so it didn't reduce availableCopies yet.
+        const activeBorrows = await Borrow.find({
             user: userToDelete._id,
-            status: { $in: ['borrowed', 'overdue', 'pending', 'return_pending'] }
+            status: { $in: ['borrowed', 'overdue', 'return_pending'] }
         });
 
-        if (activeBorrows > 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Cannot delete user with active/pending transactions'
+        for (const borrow of activeBorrows) {
+            await Book.findByIdAndUpdate(borrow.book, {
+                $inc: { availableCopies: 1 }
             });
         }
+
+        // 2. Cascade Delete User's Records
+        await Borrow.deleteMany({ user: userToDelete._id });
+        
+        try {
+            const Reservation = require('../models/Reservation');
+            if (Reservation) {
+                await Reservation.deleteMany({ user: userToDelete._id });
+            }
+        } catch (err) {
+            // Safe fallback if Reservation model doesn't exist or load properly
+        }
+
+        await Payment.deleteMany({ user: userToDelete._id });
 
         await userToDelete.deleteOne();
         res.status(200).json({ success: true, message: 'User deleted successfully' });
