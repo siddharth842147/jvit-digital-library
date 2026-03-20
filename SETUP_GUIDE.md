@@ -88,8 +88,8 @@ STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
 
 # Email Configuration (Gmail)
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_gmail_app_password
-EMAIL_FROM=Library Management <your_email@gmail.com>
+BREVO_API_KEY=your_brevo_api_key
+EMAIL_FROM=Library Management System <your_email@gmail.com>
 
 # Frontend URL
 FRONTEND_URL=http://localhost:3000
@@ -255,13 +255,20 @@ REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
    - Go to Security → App passwords
    - Select "Mail" and "Other"
    - Generate password
-   - Copy the 16-character password
-   - Use this as `EMAIL_PASSWORD` in backend `.env`
+   - You'll get a 16-character password (e.g., `abcd efgh ijkl mnop`)
+   - Use this as `BREVO_API_KEY` in backend `.env`
+   - Example Backend `.env`:
+   ```env
+   EMAIL_USER=your_email@gmail.com
+   BREVO_API_KEY=your_brevo_api_key
+   EMAIL_FROM=Library Management System <your_email@gmail.com>
+   ```
 
 3. **Update Environment Variables:**
    ```env
    EMAIL_USER=your_email@gmail.com
-   EMAIL_PASSWORD=your_16_char_app_password
+   BREVO_API_KEY=your_brevo_api_key
+   EMAIL_FROM=Library Management System <your_email@gmail.com>
    ```
 
 ---
@@ -416,12 +423,11 @@ git push heroku main
    ```
 2. Change port in backend `.env`
 
-### Email Not Sending
-
-**Solutions:**
-1. Verify Gmail App Password (not regular password)
-2. Enable 2FA on Google Account
-3. Check EMAIL_USER and EMAIL_PASSWORD in `.env`
+### 2. Email Not Sending
+1. Make sure you generated an **App Password** (not your regular Gmail login password)
+2. Ensure 2-Step Verification is ON for your Google Account
+3. Check EMAIL_USER and BREVO_API_KEY in `.env`
+4. If using another provider (Yahoo, Outlook), you might need to change `service: 'gmail'` in `backend/utils/sendEmail.js`)
 
 ### Payment Integration Not Working
 

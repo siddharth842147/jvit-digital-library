@@ -131,7 +131,7 @@ RAZORPAY_KEY_SECRET=your_razorpay_live_secret
 STRIPE_SECRET_KEY=your_stripe_live_secret_key
 STRIPE_PUBLISHABLE_KEY=your_stripe_live_publishable_key
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_gmail_app_password
+BREVO_API_KEY=your_brevo_api_key
 EMAIL_FROM=Library Management <your_email@gmail.com>
 FRONTEND_URL=https://your-app.netlify.app
 FINE_PER_DAY=10
@@ -241,7 +241,7 @@ heroku config:set RAZORPAY_KEY_ID="your_key"
 heroku config:set RAZORPAY_KEY_SECRET="your_secret"
 heroku config:set STRIPE_SECRET_KEY="your_key"
 heroku config:set EMAIL_USER="your_email"
-heroku config:set EMAIL_PASSWORD="your_password"
+heroku config:set BREVO_API_KEY="your_api_key"
 heroku config:set FRONTEND_URL="https://your-app.netlify.app"
 ```
 

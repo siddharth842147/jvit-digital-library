@@ -114,7 +114,8 @@ STRIPE_PUBLISHABLE_KEY=your_stripe_publishable_key
 
 # Email (Gmail)
 EMAIL_USER=your_email@gmail.com
-EMAIL_PASSWORD=your_app_specific_password
+BREVO_API_KEY=your_brevo_api_key
+EMAIL_FROM=Library Management System <your_email@gmail.com>
 
 # Frontend URL
 FRONTEND_URL=http://localhost:3000
@@ -327,10 +328,9 @@ Users receive emails for:
 - Check test mode is enabled
 - Ensure frontend has correct publishable keys
 
-### Email Not Sending
-- Use Gmail App Password (not regular password)
-- Enable "Less secure app access" or use App Password
-- Check EMAIL_USER and EMAIL_PASSWORD in .env
+#### Email Issues
+- Check EMAIL_USER and BREVO_API_KEY in .env
+- Ensure Less Secure Apps or App Passwords are configured correctly on your email provider
 
 ## 📄 License
 
