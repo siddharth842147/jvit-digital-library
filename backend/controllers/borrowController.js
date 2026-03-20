@@ -162,8 +162,8 @@ exports.approveBorrow = async (req, res) => {
             borrow.approvedByLibrarian = req.user.id;
         }
 
-        // Check if both have approved
-        if (borrow.approvedByAdmin && borrow.approvedByLibrarian) {
+        // Check if AT LEAST ONE staff member has approved
+        if (borrow.approvedByAdmin || borrow.approvedByLibrarian) {
             borrow.status = 'borrowed';
             borrow.borrowDate = new Date();
             borrow.issuedBy = req.user.id;
@@ -205,10 +205,11 @@ exports.approveBorrow = async (req, res) => {
 
             // Send success email
             try {
+                const sendEmail = require('../utils/sendEmail');
                 await sendEmail({
                     email: user.email,
-                    subject: 'Borrow Request Approved!',
-                    message: `Hello ${user.name},\n\nYour request for "${book.title}" has been approved by both Admin and Librarian. You can now collect the book.`
+                    subject: 'Borrow Request Approved! ✅',
+                    message: `Hello ${user.name},\n\nYour request for "${book.title}" has been approved by the library administration. You can now collect the physical book from the library.`
                 });
             } catch (e) { }
         }
@@ -216,7 +217,7 @@ exports.approveBorrow = async (req, res) => {
         await borrow.save();
         res.status(200).json({
             success: true,
-            message: borrow.status === 'borrowed' ? 'Fully Approved!' : 'Approval recorded. Waiting for other staff.',
+            message: 'Book request approved successfully!',
             data: borrow
         });
     } catch (error) {
