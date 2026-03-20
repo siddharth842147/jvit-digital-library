@@ -26,6 +26,10 @@ const sendEmail = async (options) => {
             name: senderName,
             email: senderEmail
         },
+        replyTo: {
+            email: senderEmail,
+            name: senderName
+        },
         to: toRecipients,
         subject: options.subject,
         textContent: options.message,
