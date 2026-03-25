@@ -84,10 +84,12 @@ borrowSchema.methods.calculateFine = async function () {
 
 // Update status based on dates
 borrowSchema.pre('save', function (next) {
-    if (this.returnDate) {
+    if (this.returnDate && this.status !== 'return_pending') {
         this.status = 'returned';
-    } else if (new Date() > this.dueDate) {
-        this.status = 'overdue';
+    } else if (!this.returnDate && new Date() > this.dueDate) {
+        if (this.status !== 'return_pending' && this.status !== 'returned') {
+            this.status = 'overdue';
+        }
     }
     next();
 });
