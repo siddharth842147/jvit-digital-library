@@ -300,8 +300,11 @@ const ManageBooks = () => {
                         <Button variant="outline-success" onClick={() => handleDownloadReport('inventory')}>Inventory PDF</Button>
                         <Button variant="outline-success" onClick={() => handleDownloadReport('fines')}>Fines PDF</Button>
                         <Button variant="success" onClick={() => setShowBulkModal(true)}>Bulk Upload</Button>
+                        <Button variant="outline-primary" className="fw-bold d-flex align-items-center gap-2" onClick={() => { handleOpenModal(); setTimeout(startScanner, 200); }}>
+                            <FiCamera /> Scan Barcode
+                        </Button>
                         <Button variant="primary" className="px-4 py-2 fw-bold d-flex align-items-center gap-2" onClick={() => handleOpenModal()}>
-                            <FiPlus /> Add New Book
+                            <FiPlus /> Add Manually
                         </Button>
                     </Col>
                 </Row>
