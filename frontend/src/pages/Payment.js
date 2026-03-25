@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Button, Spinner, Badge, Tabs, Tab, Form } from 'react-bootstrap';
 import { FiDollarSign, FiCreditCard, FiInfo, FiSmartphone, FiHome, FiCopy } from 'react-icons/fi';
 import { createPaymentOrder, verifyPayment, loadRazorpayScript, getAdminPaymentDetails, submitManualPayment } from '../services/paymentService';
+import { getMyBorrowedBooks } from '../services/borrowService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
@@ -14,8 +15,23 @@ const Payment = () => {
     const [txnId, setTxnId] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('online');
+    const [fineAmount, setFineAmount] = useState(0);
 
-    const fineAmount = user?.totalFines || 0;
+    useEffect(() => {
+        const fetchFines = async () => {
+            try {
+                const response = await getMyBorrowedBooks();
+                const accrued = response.data.reduce((sum, b) => sum + (b.accruedFine || 0), 0);
+                const total = (user?.totalFines || 0) + accrued;
+                setFineAmount(Math.max(0, total));
+            } catch (error) {
+                console.error('Error fetching dynamic fines:', error);
+                setFineAmount(Math.max(0, user?.totalFines || 0));
+            }
+        };
+
+        if (user) fetchFines();
+    }, [user]);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -93,7 +109,8 @@ const Payment = () => {
             const rzp = new window.Razorpay(options);
             rzp.open();
         } catch (error) {
-            toast.error('Payment initiation failed');
+            const errMsg = error.response?.data?.message || error.message || 'Payment initiation failed';
+            toast.error(`Error: ${errMsg}`);
         } finally {
             setLoading(false);
         }

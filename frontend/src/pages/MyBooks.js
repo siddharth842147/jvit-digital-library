@@ -41,8 +41,12 @@ const MyBooks = () => {
         }
     };
 
-    const handleReturn = async (id) => {
-        if (!window.confirm('Are you sure you want to return this book?')) return;
+    const handleReturn = async (id, accruedFine) => {
+        const confirmMessage = accruedFine > 0 
+            ? `Are you sure you want to return this book?\nYou have an accrued fine of ₹${accruedFine} for late return.` 
+            : 'Are you sure you want to return this book?';
+
+        if (!window.confirm(confirmMessage)) return;
 
         try {
             setReturningId(id);
@@ -128,6 +132,9 @@ const MyBooks = () => {
                                                         </div>
                                                         <div className={`d-flex align-items-center gap-2 ${borrow.status === 'overdue' ? 'text-danger fw-bold' : 'text-primary'}`}>
                                                             <FiCalendar /> <small>Due Date: {new Date(borrow.dueDate).toLocaleDateString()}</small>
+                                                            {borrow.accruedFine > 0 && (
+                                                                <Badge bg="danger" className="ms-2">₹{borrow.accruedFine} Fine</Badge>
+                                                            )}
                                                         </div>
                                                         <div className="mt-2 small text-muted">
                                                             <strong>Renewals:</strong> {borrow.renewalCount || 0}/2
@@ -139,7 +146,7 @@ const MyBooks = () => {
                                                     <Button
                                                         variant={borrow.status === 'return_pending' ? 'outline-secondary' : 'primary'}
                                                         className="flex-grow-1 d-flex align-items-center justify-content-center gap-2"
-                                                        onClick={() => handleReturn(borrow._id)}
+                                                        onClick={() => handleReturn(borrow._id, borrow.accruedFine)}
                                                         disabled={returningId === borrow._id || borrow.status === 'pending' || borrow.status === 'return_pending'}
                                                     >
                                                         {returningId === borrow._id ? <Spinner size="sm" /> : <FiRotateCcw />}

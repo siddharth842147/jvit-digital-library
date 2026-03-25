@@ -160,7 +160,7 @@ exports.verifyPayment = async (req, res) => {
         // Update user's fines if payment type is fine
         if (payment.paymentType === 'fine') {
             const user = await User.findById(payment.user);
-            user.totalFines = Math.max(0, user.totalFines - payment.amount);
+            user.totalFines -= payment.amount;
             await user.save();
 
             // Update borrow record if associated
@@ -481,12 +481,12 @@ exports.getAdminPaymentDetails = async (req, res) => {
     res.status(200).json({
         success: true,
         data: {
-            upiId: process.env.COLLEGE_UPI_ID,
-            upiName: process.env.COLLEGE_UPI_NAME,
-            bankName: process.env.COLLEGE_BANK_NAME,
-            accountHolder: process.env.COLLEGE_ACCOUNT_HOLDER,
-            accountNo: process.env.COLLEGE_ACCOUNT_NO,
-            ifsc: process.env.COLLEGE_IFSC
+            upiId: process.env.COLLEGE_UPI_ID || 'library@ybl',
+            upiName: process.env.COLLEGE_UPI_NAME || 'JVIT Digital Library',
+            bankName: process.env.COLLEGE_BANK_NAME || 'State Bank of India',
+            accountHolder: process.env.COLLEGE_ACCOUNT_HOLDER || 'JVIT Library Account',
+            accountNo: process.env.COLLEGE_ACCOUNT_NO || '0000000000000',
+            ifsc: process.env.COLLEGE_IFSC || 'SBIN0000000'
         }
     });
 };
@@ -563,7 +563,7 @@ exports.verifyManualPayment = async (req, res) => {
             // Business Logic Updates
             if (payment.paymentType === 'fine') {
                 const user = await User.findById(payment.user._id);
-                user.totalFines = Math.max(0, user.totalFines - payment.amount);
+                user.totalFines -= payment.amount;
                 await user.save();
 
                 if (payment.borrow) {

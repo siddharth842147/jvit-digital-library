@@ -22,10 +22,12 @@ const Dashboard = () => {
                 const response = await getMyBorrowedBooks();
                 const borrows = response.data;
 
+                const currentBorrowsAccruedFine = borrows.reduce((sum, b) => sum + (b.accruedFine || 0), 0);
+
                 setStats({
                     totalBorrowed: borrows.length,
                     overdue: borrows.filter(b => b.status === 'overdue').length,
-                    pendingFines: user?.totalFines || 0,
+                    pendingFines: Math.max(0, (user?.totalFines || 0) + currentBorrowsAccruedFine),
                     recentBooks: borrows.slice(0, 3)
                 });
             } catch (error) {

@@ -240,6 +240,28 @@ exports.returnBook = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Return already in progress or completed' });
         }
 
+        const Holiday = require('../models/Holiday');
+        const { getFineableDays } = require('../utils/dateUtils');
+        const holidays = await Holiday.find() || [];
+        const finePerDay = parseInt(process.env.FINE_PER_DAY) || 10;
+        const now = new Date();
+        
+        let accruedFine = 0;
+        if (now > borrow.dueDate) {
+            const fineableDays = getFineableDays(borrow.dueDate, now, holidays);
+            accruedFine = fineableDays * finePerDay;
+        }
+
+        const user = await User.findById(borrow.user._id);
+        const currentOwed = (user.totalFines || 0) + accruedFine;
+
+        if (currentOwed > 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: `You must clear your outstanding fine of ₹${currentOwed} before returning a book. Please visit the Payment portal.` 
+            });
+        }
+
         borrow.status = 'return_pending';
         borrow.returnDate = new Date();
         await borrow.save();
@@ -371,10 +393,30 @@ exports.getMyBorrowedBooks = async (req, res) => {
             .populate('book', 'title author coverImage category')
             .sort({ createdAt: -1 });
 
+        const Holiday = require('../models/Holiday');
+        const { getFineableDays } = require('../utils/dateUtils');
+        const holidays = await Holiday.find();
+        const finePerDay = parseInt(process.env.FINE_PER_DAY) || 10;
+        const now = new Date();
+
+        const enhancedBorrows = borrows.map(borrow => {
+            const b = borrow.toObject();
+            if (b.status === 'borrowed' && new Date(b.dueDate) < now) {
+                b.status = 'overdue';
+            }
+            if (b.status === 'overdue' && !b.returnDate) {
+                const fineableDays = getFineableDays(b.dueDate, now, holidays);
+                b.accruedFine = fineableDays * finePerDay;
+            } else {
+                b.accruedFine = borrow.fine || 0;
+            }
+            return b;
+        });
+
         res.status(200).json({
             success: true,
-            count: borrows.length,
-            data: borrows
+            count: enhancedBorrows.length,
+            data: enhancedBorrows
         });
     } catch (error) {
         res.status(500).json({
