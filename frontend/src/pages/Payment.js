@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Container, Row, Col, Card, Button, Spinner, Badge, Tabs, Tab, Form } from 'react-bootstrap';
 import { FiDollarSign, FiCreditCard, FiInfo, FiSmartphone, FiHome, FiCopy } from 'react-icons/fi';
 import { createPaymentOrder, verifyPayment, loadRazorpayScript, getAdminPaymentDetails, submitManualPayment } from '../services/paymentService';
@@ -17,21 +18,27 @@ const Payment = () => {
     const [submitting, setSubmitting] = useState(false);
     const [activeTab, setActiveTab] = useState('online');
     const [fineAmount, setFineAmount] = useState(0);
+    const [coins, setCoins] = useState(0);
 
     useEffect(() => {
-        const fetchFines = async () => {
+        const fetchFinesAndCoins = async () => {
             try {
                 const response = await getMyBorrowedBooks();
                 const accrued = response.data.reduce((sum, b) => sum + (b.accruedFine || 0), 0);
                 const total = (user?.totalFines || 0) + accrued;
                 setFineAmount(Math.max(0, total));
+
+                const coinRes = await axios.get(`${process.env.REACT_APP_API_URL}/user/coins`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                setCoins(coinRes.data.data.coins || 0);
             } catch (error) {
                 console.error('Error fetching dynamic fines:', error);
                 setFineAmount(Math.max(0, user?.totalFines || 0));
             }
         };
 
-        if (user) fetchFines();
+        if (user) fetchFinesAndCoins();
     }, [user]);
 
     useEffect(() => {
@@ -157,6 +164,26 @@ const Payment = () => {
         }
     };
 
+    const handleApplyCoins = async () => {
+        try {
+            const coinsToUse = Math.min(coins, fineAmount);
+            if (coinsToUse <= 0) return toast.info("No coins to apply");
+            
+            setLoading(true);
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}/payment/apply-coins-payment`, { coinsToUse }, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            });
+            
+            toast.success(response.data.message);
+            setFineAmount(response.data.data.totalFines);
+            setCoins(response.data.data.coins);
+        } catch(error) {
+            toast.error(error.response?.data?.message || 'Error applying coins');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div style={{ padding: '4rem 0', background: 'var(--bg-secondary)', minHeight: '90vh' }}>
             <Container>
@@ -178,6 +205,25 @@ const Payment = () => {
                                     </div>
                                     <h6 className="text-uppercase opacity-75 fw-bold small mb-2">Total Outstanding</h6>
                                     <h2 className="display-4 fw-bold mb-0">₹{fineAmount}</h2>
+
+                                    {coins > 0 && fineAmount > 0 && (
+                                        <div className="mt-4 p-3 bg-white text-dark rounded-3 w-100 shadow-sm text-start">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <span className="fw-bold">🪙 {coins} Coins</span>
+                                                <Badge bg="success">1 Coin = ₹1</Badge>
+                                            </div>
+                                            <Button 
+                                                variant="outline-primary" 
+                                                size="sm" 
+                                                className="w-100 fw-bold"
+                                                onClick={handleApplyCoins}
+                                                disabled={loading}
+                                            >
+                                                Use {Math.min(coins, fineAmount)} Coins for Payment
+                                            </Button>
+                                        </div>
+                                    )}
+
                                     <div className="mt-4 p-3 rounded-3" style={{ background: 'rgba(0,0,0,0.1)', fontSize: '0.85rem' }}>
                                         <FiInfo className="me-2" />
                                         Clearing fines restores your borrowing privileges instantly.

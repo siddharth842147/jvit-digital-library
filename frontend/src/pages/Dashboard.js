@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Container, Row, Col, Card, Badge, Table, Spinner } from 'react-bootstrap';
 import { FiBook, FiClock, FiDollarSign, FiUser, FiActivity, FiArrowRight } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
@@ -11,6 +12,7 @@ const Dashboard = () => {
         totalBorrowed: 0,
         overdue: 0,
         pendingFines: 0,
+        coins: 0,
         recentBooks: []
     });
     const [loading, setLoading] = useState(true);
@@ -24,10 +26,21 @@ const Dashboard = () => {
 
                 const currentBorrowsAccruedFine = borrows.reduce((sum, b) => sum + (b.accruedFine || 0), 0);
 
+                let coinsData = 0;
+                try {
+                    const coinRes = await axios.get(`${process.env.REACT_APP_API_URL}/user/coins`, {
+                        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    coinsData = coinRes.data.data.coins;
+                } catch (e) {
+                    console.error('Failed to fetch coins', e);
+                }
+
                 setStats({
                     totalBorrowed: borrows.length,
                     overdue: borrows.filter(b => b.status === 'overdue').length,
                     pendingFines: Math.max(0, (user?.totalFines || 0) + currentBorrowsAccruedFine),
+                    coins: coinsData,
                     recentBooks: borrows.slice(0, 3)
                 });
             } catch (error) {
@@ -66,7 +79,7 @@ const Dashboard = () => {
 
                 {/* Stats Cards */}
                 <Row className="g-4 mb-5">
-                    <Col md={4}>
+                    <Col lg={3} md={6}>
                         <Card className="border-0 shadow-sm h-100" style={{ borderRadius: 'var(--radius-xl)' }}>
                             <Card.Body className="p-4 d-flex align-items-center gap-4">
                                 <div style={{ background: 'rgba(99, 102, 241, 0.1)', color: 'var(--primary)', padding: '1.25rem', borderRadius: '20px' }}>
@@ -79,7 +92,7 @@ const Dashboard = () => {
                             </Card.Body>
                         </Card>
                     </Col>
-                    <Col md={4}>
+                    <Col lg={3} md={6}>
                         <Card className="border-0 shadow-sm h-100" style={{ borderRadius: 'var(--radius-xl)' }}>
                             <Card.Body className="p-4 d-flex align-items-center gap-4">
                                 <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', padding: '1.25rem', borderRadius: '20px' }}>
@@ -92,7 +105,7 @@ const Dashboard = () => {
                             </Card.Body>
                         </Card>
                     </Col>
-                    <Col md={4}>
+                    <Col lg={3} md={6}>
                         <Card className="border-0 shadow-sm h-100" style={{ borderRadius: 'var(--radius-xl)' }}>
                             <Card.Body className="p-4 d-flex align-items-center gap-4">
                                 <div style={{ background: 'rgba(16, 185, 129, 0.1)', color: 'var(--success)', padding: '1.25rem', borderRadius: '20px' }}>
@@ -101,6 +114,19 @@ const Dashboard = () => {
                                 <div>
                                     <h2 className="mb-0 fw-bold">₹{stats.pendingFines}</h2>
                                     <p className="text-muted mb-0">Pending Fines</p>
+                                </div>
+                            </Card.Body>
+                        </Card>
+                    </Col>
+                    <Col lg={3} md={6}>
+                        <Card className="border-0 shadow-sm h-100" style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)', color: 'white', borderRadius: 'var(--radius-xl)' }}>
+                            <Card.Body className="p-4 d-flex align-items-center gap-4">
+                                <div style={{ background: 'rgba(255, 255, 255, 0.2)', padding: '1.25rem', borderRadius: '20px' }}>
+                                    <span style={{ fontSize: '32px', lineHeight: 1 }}>🪙</span>
+                                </div>
+                                <div>
+                                    <h2 className="mb-0 fw-bold">{stats.coins}</h2>
+                                    <p className="text-white-50 fw-bold mb-0">JViT Coins</p>
                                 </div>
                             </Card.Body>
                         </Card>

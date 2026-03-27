@@ -616,3 +616,49 @@ exports.verifyManualPayment = async (req, res) => {
         });
     }
 };
+
+// @desc    Apply JViT coins to reduce total fine
+// @route   POST /api/payment/apply-coins-payment
+// @access  Private
+exports.applyCoinsPayment = async (req, res) => {
+    try {
+        const { coinsToUse } = req.body;
+        
+        if (!coinsToUse || coinsToUse <= 0) {
+            return res.status(400).json({ success: false, message: 'Invalid number of coins' });
+        }
+
+        const user = await User.findById(req.user.id);
+        
+        if ((user.coins || 0) < coinsToUse) {
+            return res.status(400).json({ success: false, message: 'Insufficient JViT Coins' });
+        }
+
+        if ((user.totalFines || 0) < coinsToUse) {
+            return res.status(400).json({ success: false, message: 'Coins cannot exceed total fine amount' });
+        }
+
+        user.coins -= coinsToUse;
+        user.totalFines -= coinsToUse;
+        await user.save();
+
+        const CoinTransaction = require('../models/CoinTransaction');
+        await CoinTransaction.create({
+            user: user._id,
+            amount: coinsToUse,
+            type: 'spent',
+            description: `Used coins to reduce library fine.`
+        });
+
+        res.status(200).json({
+            success: true,
+            message: `Successfully applied ${coinsToUse} JViT Coins. Your fine is reduced by ₹${coinsToUse}.`,
+            data: {
+                coins: user.coins,
+                totalFines: user.totalFines
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+};

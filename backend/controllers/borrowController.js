@@ -264,6 +264,23 @@ exports.returnBook = async (req, res) => {
 
         borrow.status = 'return_pending';
         borrow.returnDate = new Date();
+
+        // JViT Coin Reward logic: if no accrued fine and returned on or before due date
+        let coinsEarned = 0;
+        if (accruedFine === 0 && now <= borrow.dueDate) {
+            coinsEarned = 5;
+            user.coins = (user.coins || 0) + coinsEarned;
+            await user.save();
+
+            const CoinTransaction = require('../models/CoinTransaction');
+            await CoinTransaction.create({
+                user: user._id,
+                amount: coinsEarned,
+                type: 'earned',
+                description: `Earned for returning "${borrow.book.title}" on time.`
+            });
+        }
+
         await borrow.save();
 
         // Notify Student
@@ -281,8 +298,9 @@ exports.returnBook = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Return request submitted. Please hand over the book to the librarian/admin for final verification.',
-            data: borrow
+            message: `Return request submitted.${coinsEarned > 0 ? ' You earned ' + coinsEarned + ' JViT Coins 🎉!' : ''} Please hand over the book to the librarian/admin for final verification.`,
+            data: borrow,
+            coinsEarned
         });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });

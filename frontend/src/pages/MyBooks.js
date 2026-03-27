@@ -51,7 +51,11 @@ const MyBooks = () => {
         try {
             setReturningId(id);
             const response = await returnBook(id);
-            toast.success(response.message || 'Book returned successfully!');
+            if (response.coinsEarned && response.coinsEarned > 0) {
+                toast.success(`Book returned successfully! You earned ${response.coinsEarned} JViT Coins 🎉!`);
+            } else {
+                toast.success(response.message || 'Book returned successfully!');
+            }
             fetchMyBooks(); // Refresh list
         } catch (error) {
             const message = error.response?.data?.message || 'Failed to return book';
