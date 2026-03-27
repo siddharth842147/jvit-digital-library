@@ -6,6 +6,7 @@ import { getMyBorrowedBooks } from '../services/borrowService';
 import { useAuth } from '../context/AuthContext';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 
 const Payment = () => {
     const { user } = useAuth();
@@ -51,7 +52,6 @@ const Payment = () => {
     };
 
     const upiLink = adminDetails ? `upi://pay?pa=${adminDetails.upiId}&pn=${encodeURIComponent(adminDetails.upiName)}&am=${fineAmount}&cu=INR&tn=Library%20Fine` : '';
-    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upiLink)}`;
 
     const handleOnlinePayment = async () => {
         if (fineAmount <= 0) {
@@ -67,7 +67,7 @@ const Payment = () => {
                 return;
             }
 
-            const orderResponse = await createPaymentOrder({ amount: fineAmount, type: 'fine', paymentMethod: 'razorpay' });
+            const orderResponse = await createPaymentOrder({ amount: fineAmount, paymentType: 'fine', paymentMethod: 'razorpay' });
             if (!orderResponse.success) {
                 toast.error(orderResponse.message || 'Failed to create payment order');
                 return;
@@ -83,6 +83,22 @@ const Payment = () => {
                 description: `Fine Payment for ${user?.name}`,
                 image: '/logo.jpg',
                 order_id: orderId,
+                config: {
+                    display: {
+                        blocks: {
+                            banks: {
+                                name: 'Pay using Card',
+                                instruments: [
+                                    { method: 'card' },
+                                    { method: 'upi' },
+                                    { method: 'netbanking' }
+                                ]
+                            }
+                        },
+                        sequence: ['block.banks'],
+                        preferences: { show_default_blocks: true }
+                    }
+                },
                 handler: async function (response) {
                     try {
                         const verifyResponse = await verifyPayment({
@@ -196,7 +212,7 @@ const Payment = () => {
                                                     <Row className="align-items-center">
                                                         <Col sm={6}>
                                                             <div className="p-2 bg-white rounded-3 shadow-sm d-inline-block border">
-                                                                <img src={qrCodeUrl} alt="UPI QR" style={{ width: '200px' }} />
+                                                                <QRCodeSVG value={upiLink} size={200} level="H" includeMargin={false} />
                                                             </div>
                                                             <p className="small text-muted mt-2">Scan with PhonePe, GPay, or Paytm</p>
                                                         </Col>

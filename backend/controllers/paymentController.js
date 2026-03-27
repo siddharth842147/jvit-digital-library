@@ -481,7 +481,7 @@ exports.getAdminPaymentDetails = async (req, res) => {
     res.status(200).json({
         success: true,
         data: {
-            upiId: process.env.COLLEGE_UPI_ID || 'library@ybl',
+            upiId: process.env.COLLEGE_UPI_ID || 'siddharthmh0@oksbi',
             upiName: process.env.COLLEGE_UPI_NAME || 'JVIT Digital Library',
             bankName: process.env.COLLEGE_BANK_NAME || 'State Bank of India',
             accountHolder: process.env.COLLEGE_ACCOUNT_HOLDER || 'JVIT Library Account',
