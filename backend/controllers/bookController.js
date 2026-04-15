@@ -263,26 +263,158 @@ exports.bulkUploadBooks = async (req, res) => {
         const books = [];
         const filePath = path.join(__dirname, '..', req.file.path);
 
+        const validCategories = [
+            'Fiction', 'Non-Fiction', 'Science', 'Technology', 'History',
+            'Biography', 'Self-Help', 'Business', 'Children', 'Education',
+            'Arts', 'Religion', 'Philosophy', 'Other'
+        ];
+
         fs.createReadStream(filePath)
-            .pipe(csv())
-            .on('data', (data) => books.push({
-                ...data,
-                totalCopies: parseInt(data.totalCopies) || 1,
-                availableCopies: parseInt(data.availableCopies) || parseInt(data.totalCopies) || 1,
-                publishedYear: parseInt(data.publishedYear),
-                pages: parseInt(data.pages),
-                addedBy: req.user.id
+            .pipe(csv({
+                mapHeaders: ({ header }) => header.toLowerCase().replace(/^\uFEFF/, '').trim()
             }))
+            .on('data', (data) => {
+                let title = '';
+                let author = '';
+                let publisher = '';
+                let categoryInput = 'Other';
+                let pages = undefined;
+                let publishedYear = undefined;
+
+                // Robust fuzzy matching for all columns
+                for (let [key, val] of Object.entries(data)) {
+                    if (!val) continue;
+                    val = val.trim();
+                    if (val === '') continue;
+
+                    // Title detection (avoiding purely numeric columns below 6 digits like IDs)
+                    if (!title && (key === 'book' || key.includes('title') || key.includes('name') || key.includes('book'))) {
+                        if (isNaN(val) || val.length > 5) title = val;
+                    }
+                    if (!author && (key.includes('author') || key.includes('writer'))) author = val;
+                    if (!publisher && (key.includes('publish') || key.includes('press'))) publisher = val;
+                    if (categoryInput === 'Other' && (key.includes('branch') || key.includes('cat') || key.includes('dept'))) categoryInput = val;
+                    if (!pages && (key.includes('price') || key.includes('page'))) pages = val;
+                    if (!publishedYear && (key.includes('year') || key.includes('edition') || key.includes('edetion'))) publishedYear = val;
+                }
+
+                // If headers completely failed or had random names, grab the longest readable text string as the title fallback!
+                if (!title) {
+                    const stringValues = Object.values(data).filter(v => isNaN(parseInt(v)) && (typeof v === 'string'));
+                    stringValues.sort((a, b) => b.length - a.length);
+                    if (stringValues.length > 0) title = stringValues[0];
+                }
+
+                if (!author) {
+                    const stringValues = Object.values(data).filter(v => isNaN(parseInt(v)) && v !== title && (typeof v === 'string'));
+                    stringValues.sort((a, b) => b.length - a.length);
+                    if (stringValues.length > 0) author = stringValues[0]; // second longest string
+                }
+
+                // Find Category (Smart match branch)
+                let resolvedCategory = validCategories.find(c => c.toLowerCase() === categoryInput.toLowerCase()) || 'Other';
+                const catLower = categoryInput.toLowerCase();
+                if (catLower.includes('cse') || catLower.includes('it') || catLower.includes('tech') || catLower.includes('comput')) {
+                    resolvedCategory = 'Technology';
+                } else if (catLower.includes('eee') || catLower.includes('ece') || catLower.includes('engin') || catLower.includes('mech')) {
+                    resolvedCategory = 'Science';
+                }
+                
+                const processedData = {
+                    title: title || 'Unknown Title',
+                    author: author || 'Unknown Author',
+                    publisher: publisher || 'Unknown Publisher',
+                    category: resolvedCategory,
+                    addedBy: req.user.id
+                };
+
+                // ISBN
+                let rawIsbn = (data.isbn || '').toString().trim().toLowerCase();
+                if (rawIsbn && rawIsbn !== '' && rawIsbn !== 'null' && rawIsbn !== 'nan') {
+                    processedData.isbn = data.isbn.trim();
+                }
+
+                // Treat each row as 1 copy by default, grouping loop will aggregate
+                let copiesQuery = data.totalcopies || data.copies;
+                const totalCopies = parseInt(copiesQuery);
+                processedData.totalCopies = isNaN(totalCopies) ? 1 : totalCopies;
+                processedData.availableCopies = processedData.totalCopies;
+
+                const pbYear = parseInt(publishedYear);
+                if (!isNaN(pbYear) && pbYear > 1000) processedData.publishedYear = pbYear;
+
+                const pagesNum = parseInt(pages);
+                if (!isNaN(pagesNum)) processedData.pages = pagesNum;
+
+                books.push(processedData);
+            })
             .on('end', async () => {
                 try {
-                    await Book.insertMany(books);
+                    // Group books from the CSV to handle multiple rows of the same book
+                    const groupedBooksMap = new Map();
+
+                    for (const book of books) {
+                        // Key for deduplication: ISBN or Title + Author
+                        let key = book.isbn ? book.isbn : `${book.title.toLowerCase()}_${book.author.toLowerCase()}`;
+                        
+                        if (groupedBooksMap.has(key)) {
+                            const existing = groupedBooksMap.get(key);
+                            existing.totalCopies += book.totalCopies;
+                            existing.availableCopies += book.availableCopies;
+                        } else {
+                            groupedBooksMap.set(key, book);
+                        }
+                    }
+
+                    const uniqueBooks = Array.from(groupedBooksMap.values());
+
+                    // Prepare BulkWrite operations
+                    const bulkOps = uniqueBooks.map(book => {
+                        let filter = {};
+                        if (book.isbn) {
+                            filter = { isbn: book.isbn };
+                        } else {
+                            // Using case-insensitive regex for title and author to find existing book safely
+                            filter = { 
+                                title: { $regex: new RegExp('^' + book.title.trim() + '$', 'i') },
+                                author: { $regex: new RegExp('^' + book.author.trim() + '$', 'i') }
+                            };
+                            
+                            // Generate a safe unique 13-digit dummy ISBN purely to bypass Mongo unique constraints 
+                            // on 'null' fields, preventing E11000 dup key errors entirely for new insertions!
+                            book.isbn = '999' + Math.floor(1000000000 + Math.random() * 9000000000).toString();
+                        }
+
+                        const { totalCopies, availableCopies, ...insertData } = book;
+
+                        return {
+                            updateOne: {
+                                filter: filter,
+                                update: {
+                                    $setOnInsert: insertData,
+                                    $inc: {
+                                        totalCopies: totalCopies,
+                                        availableCopies: availableCopies
+                                    }
+                                },
+                                upsert: true
+                            }
+                        };
+                    });
+
+                    // Execute bulk write
+                    if (bulkOps.length > 0) {
+                        await Book.bulkWrite(bulkOps);
+                    }
+
                     // Clean up file
                     fs.unlinkSync(filePath);
                     res.status(201).json({
                         success: true,
-                        message: `${books.length} books uploaded successfully`
+                        message: `Successfully processed ${books.length} records into ${uniqueBooks.length} distinct titles!`
                     });
                 } catch (err) {
+                    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
                     res.status(500).json({ success: false, message: err.message });
                 }
             });
