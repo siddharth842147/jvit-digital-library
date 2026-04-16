@@ -83,7 +83,7 @@ const Payment = () => {
             const { orderId, amount, currency } = orderResponse.data;
 
             const options = {
-                key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_SUC7qNT3Fv4I2s',
+                key: process.env.REACT_APP_RAZORPAY_KEY_ID || 'rzp_test_demo',
                 amount: amount * 100,
                 currency: currency,
                 name: 'JVIT Digital Library',

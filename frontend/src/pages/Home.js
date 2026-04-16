@@ -56,7 +56,7 @@ const Home = () => {
                                 WELCOME TO THE FUTURE OF KNOWLEDGE
                             </Badge>
                             <h1 style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', fontWeight: 800, marginBottom: '1.5rem', lineHeight: 1.1 }}>
-                                Jnana Vikas <br />
+                                Kho-Jnana Vikas <br />
                                 <span style={{ color: 'var(--accent)' }}>Digital Library</span>
                             </h1>
                             <p style={{ fontSize: '1.25rem', marginBottom: '3rem', opacity: 0.9, maxWidth: '600px', fontWeight: 300 }}>

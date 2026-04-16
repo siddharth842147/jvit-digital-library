@@ -73,4 +73,19 @@ const seedImageBooks = async () => {
     }
 };
 
-module.exports = seedImageBooks;
+// Execute standalone if called directly
+if (require.main === module) {
+    require('dotenv').config();
+    mongoose.connect(process.env.MONGODB_URI)
+        .then(async () => {
+            console.log('✅ Connected to DB for seeding');
+            await seedImageBooks();
+            process.exit(0);
+        })
+        .catch(err => {
+            console.error('❌ Failed to connect to DB', err);
+            process.exit(1);
+        });
+} else {
+    module.exports = seedImageBooks;
+}
