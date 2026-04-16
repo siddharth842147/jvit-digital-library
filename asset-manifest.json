@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/jvit-digital-library/static/css/main.b067ea30.css",
+    "main.js": "/jvit-digital-library/static/js/main.49ccf408.js",
+    "index.html": "/jvit-digital-library/index.html",
+    "main.b067ea30.css.map": "/jvit-digital-library/static/css/main.b067ea30.css.map",
+    "main.49ccf408.js.map": "/jvit-digital-library/static/js/main.49ccf408.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b067ea30.css",
+    "static/js/main.49ccf408.js"
+  ]
+}
