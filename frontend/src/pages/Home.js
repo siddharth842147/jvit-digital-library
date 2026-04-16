@@ -104,7 +104,7 @@ const Home = () => {
                                     border: '8px solid rgba(255,255,255,0.1)'
                                 }}>
                                     <img
-                                        src="/logo.jpg"
+                                        src={`${process.env.PUBLIC_URL}/logo.jpg`}
                                         alt="JVIT Seal"
                                         style={{ width: '90%', height: 'auto', objectFit: 'contain' }}
                                         onError={(e) => { e.target.src = "https://placehold.co/400x400/065f46/ffffff?text=JVIT"; }}

@@ -30,7 +30,7 @@ const Navbar = () => {
                         border: '2px solid var(--primary-light)'
                     }}>
                         <img
-                            src="/logo.jpg"
+                            src={`${process.env.PUBLIC_URL}/logo.jpg`}
                             alt="JVIT Logo"
                             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             onError={(e) => { e.target.src = "https://placehold.co/150x150/065f46/ffffff?text=JVIT"; }}
