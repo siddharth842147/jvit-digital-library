@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/jvit-digital-library/static/css/main.b067ea30.css",
-    "main.js": "/jvit-digital-library/static/js/main.d57d0d79.js",
+    "main.css": "/jvit-digital-library/static/css/main.ce5b66fe.css",
+    "main.js": "/jvit-digital-library/static/js/main.ad234530.js",
     "index.html": "/jvit-digital-library/index.html",
-    "main.b067ea30.css.map": "/jvit-digital-library/static/css/main.b067ea30.css.map",
-    "main.d57d0d79.js.map": "/jvit-digital-library/static/js/main.d57d0d79.js.map"
+    "main.ce5b66fe.css.map": "/jvit-digital-library/static/css/main.ce5b66fe.css.map",
+    "main.ad234530.js.map": "/jvit-digital-library/static/js/main.ad234530.js.map"
   },
   "entrypoints": [
-    "static/css/main.b067ea30.css",
-    "static/js/main.d57d0d79.js"
+    "static/css/main.ce5b66fe.css",
+    "static/js/main.ad234530.js"
   ]
 }
