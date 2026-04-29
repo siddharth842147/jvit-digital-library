@@ -140,8 +140,8 @@ const AdminDashboard = () => {
                                                         <small className="text-muted">{borrow.user?.email}</small>
                                                     </td>
                                                     <td>
-                                                        <div className="fw-bold">{borrow.book?.title}</div>
-                                                        <small className="text-muted">{borrow.book?.author}</small>
+                                                        <div className="fw-bold">{borrow.book?.title || 'Unknown Book'}</div>
+                                                        <small className="text-muted">{borrow.book?.author || 'Unknown Author'}</small>
                                                     </td>
                                                     <td>
                                                         {borrow.status === 'returned' ? (

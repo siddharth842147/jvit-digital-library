@@ -107,8 +107,8 @@ const MyBooks = () => {
                                     <Row className="g-0 h-100">
                                         <Col md={4}>
                                             <img
-                                                src={borrow.book.coverImage?.startsWith('http') ? borrow.book.coverImage : `${process.env.REACT_APP_API_URL.replace('/api', '')}${borrow.book.coverImage}`}
-                                                alt={borrow.book.title}
+                                                src={borrow.book?.coverImage?.startsWith('http') ? borrow.book.coverImage : (borrow.book?.coverImage ? `${process.env.REACT_APP_API_URL.replace('/api', '')}${borrow.book.coverImage}` : 'https://via.placeholder.com/400x600?text=No+Cover')}
+                                                alt={borrow.book?.title || 'Unknown Book'}
                                                 style={{ width: '100%', height: '100%', objectFit: 'cover', minHeight: '250px' }}
                                             />
                                         </Col>
@@ -116,7 +116,7 @@ const MyBooks = () => {
                                             <Card.Body className="d-flex flex-column p-4">
                                                 <div className="flex-grow-1">
                                                     <div className="d-flex justify-content-between align-items-center mb-3">
-                                                        <Badge bg="info">{borrow.book.category}</Badge>
+                                                        <Badge bg="info">{borrow.book?.category || 'Unknown'}</Badge>
                                                         <div className="d-flex gap-2">
                                                             {borrow.status === 'overdue' && (
                                                                 <Badge bg="danger" className="d-flex align-items-center gap-1">
@@ -127,8 +127,8 @@ const MyBooks = () => {
                                                             {borrow.status === 'return_pending' && <Badge bg="secondary">RETURN PENDING VERIFICATION</Badge>}
                                                         </div>
                                                     </div>
-                                                    <h4 style={{ fontWeight: 700, marginBottom: '0.25rem' }}>{borrow.book.title}</h4>
-                                                    <p className="text-muted mb-4">by {borrow.book.author}</p>
+                                                    <h4 style={{ fontWeight: 700, marginBottom: '0.25rem' }}>{borrow.book?.title || 'Unknown Book'}</h4>
+                                                    <p className="text-muted mb-4">by {borrow.book?.author || 'Unknown Author'}</p>
 
                                                     <div className="mb-4">
                                                         <div className="d-flex align-items-center gap-2 mb-2 text-muted">
@@ -165,7 +165,7 @@ const MyBooks = () => {
                                                             Renew (7 days)
                                                         </Button>
                                                     )}
-                                                    <Link to={`/books/${borrow.book._id}`} className="btn btn-outline-secondary">
+                                                    <Link to={borrow.book ? `/books/${borrow.book._id}` : '#'} className="btn btn-outline-secondary" disabled={!borrow.book}>
                                                         <FiInfo />
                                                     </Link>
                                                 </div>

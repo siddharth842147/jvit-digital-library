@@ -63,9 +63,9 @@ const BorrowManagement = () => {
         }
 
         return filtered.filter(b =>
-            b.user?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            b.book?.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            b.book?.isbn?.includes(searchTerm)
+            (b.user?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (b.book?.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (b.book?.isbn || '').includes(searchTerm)
         );
     };
 
@@ -131,11 +131,11 @@ const BorrowManagement = () => {
                                             return (
                                                 <tr key={b._id}>
                                                     <td className="px-4 py-3">
-                                                        <div className="fw-bold">{b.user?.name}</div>
-                                                        <small className="text-muted small">{b.user?.email}</small>
+                                                        <div className="fw-bold">{b.user?.name || 'Unknown User'}</div>
+                                                        <small className="text-muted small">{b.user?.email || 'N/A'}</small>
                                                     </td>
                                                     <td>
-                                                        <div className="fw-bold">{b.book?.title}</div>
+                                                        <div className="fw-bold">{b.book?.title || 'Unknown Book'}</div>
                                                         <small className="text-muted">Due: {new Date(b.dueDate).toLocaleDateString()}</small>
                                                     </td>
                                                     <td>
